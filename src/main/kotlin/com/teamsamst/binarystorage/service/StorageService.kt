@@ -1,6 +1,7 @@
 package com.teamsamst.binarystorage.service
 
 import java.io.File
+import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.io.InputStream
 import java.nio.file.Path
@@ -44,7 +45,7 @@ class StorageService private constructor(private val rootDirectory: Path) {
         val file = rootDirectory.resolve(path).resolve(name).toFile()
 
         if(!file.exists()) {
-            throw Exception()
+            throw FileNotFoundException(file.absolutePath)
         }
 
         return file
