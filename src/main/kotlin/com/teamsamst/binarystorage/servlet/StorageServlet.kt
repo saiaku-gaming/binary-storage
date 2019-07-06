@@ -5,6 +5,7 @@ import com.teamsamst.binarystorage.util.JS
 import org.eclipse.jetty.http.HttpStatus
 import org.glassfish.jersey.media.multipart.FormDataParam
 import java.io.InputStream
+import javax.activation.MimetypesFileTypeMap
 import javax.ws.rs.*
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
@@ -23,8 +24,9 @@ class StorageServlet {
     }
 
     @GET
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
     fun getFile(@QueryParam("path") path: String, @QueryParam("name") name: String): Response {
-        return Response.ok(storageService.getFile(path, name), MediaType.APPLICATION_OCTET_STREAM).build()
+        val file = storageService.getFile(path, name)
+        val mimeType = MimetypesFileTypeMap().getContentType(file)
+        return Response.ok(file, mimeType).build()
     }
 }

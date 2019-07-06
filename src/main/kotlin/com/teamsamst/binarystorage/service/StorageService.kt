@@ -1,11 +1,10 @@
 package com.teamsamst.binarystorage.service
 
+import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
-import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import javax.ws.rs.core.StreamingOutput
 
 class StorageService private constructor(private val rootDirectory: Path) {
     companion object {
@@ -41,30 +40,25 @@ class StorageService private constructor(private val rootDirectory: Path) {
         }
     }
 
-    fun getFile(path: String, name: String): StreamingOutput {
+    fun getFile(path: String, name: String): File {
         val file = rootDirectory.resolve(path).resolve(name).toFile()
 
         if(!file.exists()) {
             throw Exception()
         }
 
-        return StreamingOutput {
-            val bytes = Files.readAllBytes(file.toPath())
-            it.write(bytes)
-            it.flush()
-        }
+        return file
     }
 
     fun cleanupOldFiles(currentPath: Path = rootDirectory) {
-        currentPath.toFile().run {
-            if(isFile) {
-                if(System.currentTimeMillis() - lastModified() > CLEANUP_TIME) {
-                    delete()
-                }
-            } else {
-                listFiles().forEach {
-                    cleanupOldFiles(it.toPath())
-                }
+        val currentFileOrDir = currentPath.toFile()
+        if (currentFileOrDir.isFile) {
+            if (System.currentTimeMillis() - currentFileOrDir.lastModified() > CLEANUP_TIME) {
+                currentFileOrDir.delete()
+            }
+        } else {
+            currentFileOrDir.listFiles()?.forEach {
+                cleanupOldFiles(it.toPath())
             }
         }
     }
