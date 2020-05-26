@@ -199,7 +199,7 @@
                 <version>1.0.0</version>
                 <configuration>
                     <imageName>
-                        registry.valhalla-game.com/${project.artifactId}
+                        binary-storage
                     </imageName>
                     <forceTags>true</forceTags>
                     <imageTags>

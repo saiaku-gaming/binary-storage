@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  storage:
+    image: binary-storage
+    restart: always
+    environment:
+      - STORAGE_SERVER_SECRET
+      - BINARY_STORAGE_HOME=/opt/binary-storage
+    ports:
+      - "8899:8899"
+    volumes:
+      - "/opt/binary-storage:/opt/binary-storage"

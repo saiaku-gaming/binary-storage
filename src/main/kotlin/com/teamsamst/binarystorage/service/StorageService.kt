@@ -9,8 +9,8 @@ import java.nio.file.Paths
 
 class StorageService private constructor(private val rootDirectory: Path) {
     companion object {
-        val CLEANUP_TIME = 1000 * 60 * 60 * 24 * 3
-
+        const val CLEANUP_TIME = 1000 * 60 * 60 * 24 * 3
+        const val MAX_SAVED_COPIES = 20
         lateinit var INSTANCE: StorageService
             private set
 
@@ -44,23 +44,29 @@ class StorageService private constructor(private val rootDirectory: Path) {
     fun getFile(path: String, name: String): File {
         val file = rootDirectory.resolve(path).resolve(name).toFile()
 
-        if(!file.exists()) {
+        if (!file.exists()) {
             throw FileNotFoundException(file.absolutePath)
         }
 
         return file
     }
 
-    fun cleanupOldFiles(currentPath: Path = rootDirectory) {
-        val currentFileOrDir = currentPath.toFile()
-        if (currentFileOrDir.isFile) {
-            if (System.currentTimeMillis() - currentFileOrDir.lastModified() > CLEANUP_TIME) {
-                currentFileOrDir.delete()
-            }
-        } else {
-            currentFileOrDir.listFiles()?.forEach {
-                cleanupOldFiles(it.toPath())
-            }
+    fun cleanupOldFiles(path: Path = rootDirectory) {
+        val allFiles = File(path.toString())
+                .walkTopDown()
+                .filter { it.isFile }
+
+        val oldFiles = allFiles.filter { (System.currentTimeMillis() - it.lastModified()) > CLEANUP_TIME }
+
+        deleteOverMax(oldFiles.filter { it.name.contains("Develop") })
+        deleteOverMax(oldFiles.filter { it.name.contains("DebugGame") })
+        deleteOverMax(oldFiles.filter { !(it.name.contains("Develop") || it.name.contains("DebugGame")) })
+    }
+
+    private fun deleteOverMax(files: Sequence<File>) {
+        val sorted = files.sorted().toList().reversed()
+        if (sorted.size > MAX_SAVED_COPIES) {
+            sorted.subList(MAX_SAVED_COPIES, sorted.size - 1).forEach { it.delete() }
         }
     }
 }
